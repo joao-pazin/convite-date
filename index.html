@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Um convite pra você 💌</title>
+<meta name="description" content="Tem uma carta lacrada aqui esperando por você.">
+<meta name="theme-color" content="#1a0f1f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1a0f1f; --bg2:#2d1530; --paper:#fbf4e8; --ink:#3b2430;
+    --rose:#e0476b; --rose-d:#b02e50; --gold:#d9b26a; --gold-d:#a8833f;
+    --muted:#c9b3bf;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:Inter,system-ui,sans-serif; color:var(--paper);
+    background:radial-gradient(ellipse at 50% 20%,var(--bg2),var(--bg) 70%);
+    background-color:var(--bg); overflow:hidden; -webkit-tap-highlight-color:transparent;
+  }
+  #sky{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .float{position:absolute;bottom:-40px;opacity:0;animation:rise linear infinite;font-size:14px}
+  @keyframes rise{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.6}90%{opacity:.4}100%{transform:translateY(-110vh) rotate(40deg);opacity:0}}
+
+  .scene{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:24px 16px;z-index:1;opacity:0;pointer-events:none;transform:scale(.97);transition:opacity .8s,transform .8s}
+  .scene.on{opacity:1;pointer-events:auto;transform:none}
+  h1,h2{font-family:"Playfair Display",serif;font-weight:700;text-align:center;line-height:1.15}
+  h2{font-size:clamp(26px,6vw,40px)}
+  .hint{font-family:Caveat,cursive;font-size:24px;color:var(--muted);margin-top:22px;text-align:center;animation:pulse 2s infinite}
+  @keyframes pulse{50%{opacity:.45}}
+  .btn{font:600 16px Inter,sans-serif;border:0;border-radius:999px;padding:14px 28px;cursor:pointer;
+    background:var(--rose);color:#fff;box-shadow:0 8px 24px rgba(224,71,107,.35);transition:transform .25s,background .2s}
+  .btn:hover{background:var(--rose-d)}
+  .btn.ghost{background:transparent;border:1.5px solid var(--muted);color:var(--paper);box-shadow:none}
+  .fade-in{opacity:0;transform:translateY(10px);transition:opacity .6s,transform .6s}
+  .fade-in.show{opacity:1;transform:none}
+
+  /* ---------- 1. Envelope ---------- */
+  .envelope{position:relative;width:min(340px,86vw);aspect-ratio:3/2;cursor:pointer;perspective:900px;margin-top:10px}
+  .env-back{position:absolute;inset:0;background:#c8455f;border-radius:6px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+  .env-letter{position:absolute;left:6%;right:6%;top:8%;bottom:6%;background:var(--paper);border-radius:4px;
+    transition:transform 1s cubic-bezier(.3,1.3,.5,1) .5s;display:flex;align-items:center;justify-content:center;
+    font-family:Caveat,cursive;color:var(--ink);font-size:26px}
+  .envelope:not(.open) .env-letter{visibility:hidden}
+  .env-front{position:absolute;inset:0;border-radius:6px;background:
+      linear-gradient(to top right,#e05a74 50%,transparent 50.5%) left/50.5% 100% no-repeat,
+      linear-gradient(to top left,#e05a74 50%,transparent 50.5%) right/50.5% 100% no-repeat;
+    filter:drop-shadow(0 -2px 3px rgba(0,0,0,.15))}
+  .env-flap{position:absolute;left:0;right:0;top:0;height:62%;background:#d24d68;
+    clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .7s ease .25s;z-index:3}
+  .seal{position:absolute;left:50%;top:62%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;z-index:4;
+    background:radial-gradient(circle at 35% 30%,#f0c97c,var(--gold) 45%,var(--gold-d));display:flex;align-items:center;justify-content:center;
+    font-size:28px;box-shadow:0 4px 10px rgba(0,0,0,.35),inset 0 -3px 6px rgba(0,0,0,.25);transition:transform .4s,opacity .4s}
+  .envelope:hover .seal{transform:scale(1.08) rotate(-6deg)}
+  .envelope.open .seal{transform:scale(1.6) rotate(25deg);opacity:0}
+  .envelope.open .env-flap{transform:rotateX(180deg);z-index:0}
+  .envelope.open .env-letter{transform:translateY(-55%)}
+  .to{font-family:Caveat,cursive;font-size:30px;color:var(--gold);margin-bottom:26px;text-align:center}
+
+  /* ---------- 2. Carta ---------- */
+  .letter{width:min(520px,100%);background:var(--paper);color:var(--ink);border-radius:6px;padding:34px 28px 30px;
+    box-shadow:0 25px 60px rgba(0,0,0,.5);position:relative;max-height:80vh;overflow:auto;
+    background-image:repeating-linear-gradient(transparent 0 33px,rgba(176,46,80,.12) 33px 34px)}
+  .letter p{font-family:Caveat,cursive;font-size:clamp(23px,5.4vw,28px);line-height:34px;min-height:34px}
+  .caret{display:inline-block;width:2px;height:22px;background:var(--rose);vertical-align:middle;animation:pulse .8s infinite}
+  #toQuestion{margin-top:26px}
+
+  /* ---------- 3. Pergunta ---------- */
+  .q-sub{color:var(--muted);margin:12px 0 34px;text-align:center;font-size:15px}
+  .q-btns{display:flex;gap:18px;align-items:center;justify-content:center;min-height:90px}
+  #no{transition:transform .25s,left .35s,top .35s;white-space:nowrap}
+  #no.flee{position:fixed;z-index:10}
+  .gif{font-size:64px;margin-bottom:12px;transition:transform .3s}
+
+  /* ---------- 4. Raspadinha ---------- */
+  .scratch-wrap{position:relative;width:min(360px,90vw);border-radius:16px;overflow:hidden;margin-top:24px;
+    box-shadow:0 20px 50px rgba(0,0,0,.5);touch-action:none}
+  .reveal{background:var(--paper);color:var(--ink);padding:30px 22px;text-align:center}
+  .reveal .big{font-family:"Playfair Display",serif;font-size:30px;font-weight:700;color:var(--rose-d);margin:6px 0 10px}
+  .reveal .small{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#8b6b77}
+  .reveal .place{font-family:Caveat,cursive;font-size:30px;margin-top:4px}
+  #scratch{position:absolute;inset:0;width:100%;height:100%;cursor:grab;transition:opacity .8s}
+  #toTicket{margin-top:26px}
+
+  /* ---------- 5. Ingresso ---------- */
+  .scroll{overflow-y:auto;justify-content:flex-start}
+  .scroll>*:first-child{margin-top:auto}.scroll>*:last-child{margin-bottom:auto}
+  .ticket{width:min(400px,100%);color:var(--ink);filter:drop-shadow(0 20px 40px rgba(0,0,0,.5));margin-top:18px}
+  .t-top,.t-bot{background:var(--paper);padding:22px 24px}
+  .t-top{border-radius:16px 16px 0 0;
+    -webkit-mask:radial-gradient(circle 14px at 0 100%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 14px at 100% 100%,#0000 98%,#000) right/51% 100% no-repeat;
+            mask:radial-gradient(circle 14px at 0 100%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 14px at 100% 100%,#0000 98%,#000) right/51% 100% no-repeat}
+  .t-bot{border-radius:0 0 16px 16px;border-top:2px dashed #d8c6b8;
+    -webkit-mask:radial-gradient(circle 14px at 0 0,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 14px at 100% 0,#0000 98%,#000) right/51% 100% no-repeat;
+            mask:radial-gradient(circle 14px at 0 0,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 14px at 100% 0,#0000 98%,#000) right/51% 100% no-repeat}
+  .t-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#8b6b77}
+  .t-title{font-family:"Playfair Display",serif;font-size:28px;font-weight:700;color:var(--rose-d);margin:8px 0 14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+  .lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#8b6b77}
+  .val{font-weight:600;font-size:15px;margin-top:2px;overflow-wrap:anywhere}
+  .full{grid-column:1/-1}
+  .count{display:flex;justify-content:space-between;text-align:center}
+  .count b{display:block;font-family:"Playfair Display",serif;font-size:26px;color:var(--rose-d)}
+  .count span{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#8b6b77}
+  .barcode{height:38px;margin-top:16px;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 8px,var(--ink) 8px 11px,transparent 11px 12px);opacity:.8;border-radius:2px}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:22px;width:min(400px,100%)}
+  .actions .btn{flex:1 1 150px;padding:12px 16px;font-size:14px;text-align:center;text-decoration:none}
+  .ps{font-family:Caveat,cursive;font-size:24px;color:var(--gold);margin-top:18px;text-align:center}
+
+  .burst{position:fixed;top:-40px;z-index:20;pointer-events:none;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div id="sky"></div>
+
+<!-- 1. Envelope lacrado -->
+<section class="scene on" id="s1">
+  <div class="to" id="toName"></div>
+  <div class="envelope" id="envelope" role="button" aria-label="Abrir carta">
+    <div class="env-back"></div>
+    <div class="env-letter">para você ♡</div>
+    <div class="env-front"></div>
+    <div class="env-flap"></div>
+    <div class="seal">❤</div>
+  </div>
+  <p class="hint">toque no lacre pra abrir</p>
+</section>
+
+<!-- 2. Carta datilografada -->
+<section class="scene" id="s2">
+  <div class="letter" id="letter"></div>
+  <button class="btn fade-in" id="toQuestion">Continuar →</button>
+</section>
+
+<!-- 3. A pergunta -->
+<section class="scene" id="s3">
+  <div class="gif" id="gif">🥺</div>
+  <h2 id="qTitle"></h2>
+  <p class="q-sub">(só existe uma resposta certa)</p>
+  <div class="q-btns">
+    <button class="btn" id="yes">Sim!</button>
+    <button class="btn ghost" id="no">Não</button>
+  </div>
+</section>
+
+<!-- 4. Raspadinha -->
+<section class="scene" id="s4">
+  <h2>Ebaaa! 🎉</h2>
+  <p class="q-sub" style="margin-bottom:0">Agora raspe o cartão pra descobrir o plano</p>
+  <div class="scratch-wrap" id="scratchWrap">
+    <div class="reveal">
+      <div class="small">nosso date é</div>
+      <div class="big" id="rDate"></div>
+      <div class="small" id="rTime"></div>
+      <div class="place" id="rPlace"></div>
+    </div>
+    <canvas id="scratch"></canvas>
+  </div>
+  <button class="btn fade-in" id="toTicket">Pegar meu ingresso 🎟️</button>
+</section>
+
+<!-- 5. Ingresso -->
+<section class="scene scroll" id="s5">
+  <div class="ticket">
+    <div class="t-top">
+      <div class="t-head"><span>Admit two</span><span id="tCode"></span></div>
+      <div class="t-title">Passe VIP para um Date</div>
+      <div class="grid">
+        <div><div class="lbl">Convidada</div><div class="val" id="tHer"></div></div>
+        <div><div class="lbl">Acompanhante</div><div class="val" id="tHim"></div></div>
+        <div><div class="lbl">Data</div><div class="val" id="tDate"></div></div>
+        <div><div class="lbl">Horário</div><div class="val" id="tTime"></div></div>
+        <div class="full"><div class="lbl">Local</div><div class="val" id="tPlace"></div></div>
+        <div class="full"><div class="lbl">Dress code</div><div class="val" id="tDress"></div></div>
+      </div>
+    </div>
+    <div class="t-bot">
+      <div class="lbl" style="text-align:center;margin-bottom:10px">Faltam</div>
+      <div class="count">
+        <div><b id="cd">0</b><span>dias</span></div>
+        <div><b id="ch">0</b><span>horas</span></div>
+        <div><b id="cm">0</b><span>min</span></div>
+        <div><b id="cs">0</b><span>seg</span></div>
+      </div>
+      <div class="barcode"></div>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn" id="ics">📅 Salvar na agenda</button>
+    <a class="btn ghost" id="map" target="_blank" rel="noopener">📍 Ver no mapa</a>
+    <a class="btn ghost" id="wa" target="_blank" rel="noopener" style="flex-basis:100%">💬 Confirmar presença</a>
+  </div>
+  <p class="ps" id="ps"></p>
+</section>
+
+<script>
+/* =========================================================
+   ✏️  EDITE AQUI — é só trocar os textos entre aspas
+   ========================================================= */
+const CONFIG = {
+  nomeDela: "Meu amor",
+  nomeDele: "Seu marido",
+  carta: [
+    "Oi, meu amor,",
+    "",
+    "No meio da correria de todo dia,",
+    "eu percebi que tô com saudade de nós dois.",
+    "Só a gente, sem pressa, sem lista de tarefas.",
+    "",
+    "Então preparei uma coisa...",
+  ],
+  pergunta: "Aceita sair comigo num date?",
+  data: "2026-12-12T19:30",           // AAAA-MM-DDTHH:MM
+  duracaoHoras: 3,
+  local: "Lugar surpresa 🤫",
+  endereco: "",                       // ex: "Rua X, 123 - Cidade" (usado no mapa e na agenda)
+  dressCode: "Aquele look que você fica linda (todos)",
+  whatsapp: "",                       // seu número com DDI, ex: "5511999999999"
+  ps: "P.S.: eu te amo mais do que ontem.",
+};
+/* ========================================================= */
+
+const $ = s => document.querySelector(s);
+const when = new Date(CONFIG.data);
+const fmtDate = when.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+const fmtShort = when.toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"});
+const fmtTime = when.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+
+function go(id){
+  document.querySelectorAll(".scene").forEach(s=>s.classList.remove("on"));
+  $(id).classList.add("on");
+}
+
+/* céu com corações flutuando */
+(function sky(){
+  const icons=["♡","✦","❤","✧","·"];
+  for(let i=0;i<26;i++){
+    const e=document.createElement("span");
+    e.className="float";
+    e.textContent=icons[i%icons.length];
+    e.style.left=Math.random()*100+"vw";
+    e.style.fontSize=(10+Math.random()*16)+"px";
+    e.style.color=Math.random()>.5?"#e0476b":"#d9b26a";
+    e.style.animationDuration=(10+Math.random()*14)+"s";
+    e.style.animationDelay=(-Math.random()*20)+"s";
+    $("#sky").appendChild(e);
+  }
+})();
+
+function burst(n=60){
+  const icons=["❤️","💖","✨","💕","🌹"];
+  for(let i=0;i<n;i++){
+    const e=document.createElement("div");
+    e.className="burst";
+    e.textContent=icons[i%icons.length];
+    e.style.left=Math.random()*100+"vw";
+    e.style.fontSize=(16+Math.random()*20)+"px";
+    e.style.animationDuration=(2.2+Math.random()*2.5)+"s";
+    e.style.animationDelay=Math.random()*.8+"s";
+    document.body.appendChild(e);
+    setTimeout(()=>e.remove(),6000);
+  }
+}
+
+/* 1. envelope */
+$("#toName").textContent = "Para: " + CONFIG.nomeDela;
+$("#envelope").addEventListener("click",function(){
+  if(this.classList.contains("open")) return;
+  this.classList.add("open");
+  setTimeout(()=>{go("#s2");typeLetter();},1900);
+},{once:false});
+
+/* 2. carta digitando */
+async function typeLetter(){
+  const box=$("#letter");
+  const caret=document.createElement("span");caret.className="caret";
+  for(const line of CONFIG.carta){
+    const p=document.createElement("p");box.appendChild(p);
+    p.appendChild(caret);
+    for(const ch of line){
+      caret.before(ch);
+      await new Promise(r=>setTimeout(r, ch===","||ch==="."?220:38+Math.random()*40));
+    }
+    await new Promise(r=>setTimeout(r,line?260:120));
+  }
+  setTimeout(()=>$("#toQuestion").classList.add("show"),300);
+}
+$("#toQuestion").onclick=()=>go("#s3");
+
+/* 3. pergunta com o "Não" fujão */
+$("#qTitle").textContent=CONFIG.pergunta;
+const noTexts=["Não","Tem certeza?","Pensa bem…","Olha o botão do lado 👉","Última chance!","Vai partir meu coração 💔","Ok, você não tem escolha"];
+const faces=["🥺","😳","😢","🥹","😭","💔","😏"];
+let tries=0, yesScale=1;
+function dodge(e){
+  if(e) e.preventDefault();
+  const no=$("#no");
+  tries++;
+  if(tries>=noTexts.length){
+    no.textContent="Sim 💘";no.className="btn";no.style.cssText="";
+    no.onclick=accept;no.onpointerdown=null;no.onmouseenter=null;return;
+  }
+  no.textContent=noTexts[tries];
+  $("#gif").textContent=faces[tries];
+  yesScale+=.18;$("#yes").style.transform=`scale(${yesScale})`;
+  const r=no.getBoundingClientRect();
+  no.classList.add("flee");
+  const pad=16;
+  no.style.left=(pad+Math.random()*(innerWidth-r.width-pad*2))+"px";
+  no.style.top =(pad+Math.random()*(innerHeight-r.height-pad*2))+"px";
+}
+$("#no").onmouseenter=dodge;
+$("#no").onpointerdown=dodge;
+$("#no").onclick=e=>{ if(tries<noTexts.length) e.preventDefault(); };
+function accept(){
+  $("#no").style.display="none";
+  $("#gif").textContent="🥰";
+  burst(80);
+  setTimeout(()=>{go("#s4");initScratch();},1200);
+}
+$("#yes").onclick=accept;
+
+/* 4. raspadinha */
+$("#rDate").textContent=fmtDate[0].toUpperCase()+fmtDate.slice(1);
+$("#rTime").textContent="às "+fmtTime;
+$("#rPlace").textContent=CONFIG.local;
+function initScratch(){
+  const c=$("#scratch"),wrap=$("#scratchWrap"),ctx=c.getContext("2d");
+  const dpr=devicePixelRatio||1, w=wrap.offsetWidth, h=wrap.offsetHeight;
+  c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);
+  const g=ctx.createLinearGradient(0,0,w,h);
+  g.addColorStop(0,"#b8913f");g.addColorStop(.5,"#f0d08c");g.addColorStop(1,"#a8833f");
+  ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  for(let i=0;i<300;i++){ctx.fillStyle=`rgba(255,255,255,${Math.random()*.25})`;ctx.fillRect(Math.random()*w,Math.random()*h,2,2);}
+  ctx.fillStyle="#5a4220";ctx.textAlign="center";
+  ctx.font="700 30px Caveat, cursive";ctx.fillText("✨ raspe aqui ✨",w/2,h/2+10);
+  ctx.globalCompositeOperation="destination-out";
+  let down=false,last=null,moves=0,done=false;
+  const pos=e=>{const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+  function scratch(p){
+    ctx.lineWidth=44;ctx.lineCap="round";ctx.beginPath();
+    ctx.moveTo((last||p).x,(last||p).y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;
+    if(++moves%12===0) check();
+  }
+  function check(){
+    if(done) return;
+    const d=ctx.getImageData(0,0,c.width,c.height).data;let clear=0,tot=0;
+    for(let i=3;i<d.length;i+=64){tot++;if(d[i]===0)clear++;}
+    if(clear/tot>.5){done=true;c.style.opacity=0;setTimeout(()=>c.remove(),800);burst(40);
+      setTimeout(()=>$("#toTicket").classList.add("show"),700);}
+  }
+  c.addEventListener("pointerdown",e=>{down=true;last=null;c.setPointerCapture(e.pointerId);scratch(pos(e))});
+  c.addEventListener("pointermove",e=>{if(down)scratch(pos(e))});
+  c.addEventListener("pointerup",()=>{down=false;check()});
+}
+$("#toTicket").onclick=()=>{go("#s5");burst(50);};
+
+/* 5. ingresso */
+$("#tHer").textContent=CONFIG.nomeDela;
+$("#tHim").textContent=CONFIG.nomeDele;
+$("#tDate").textContent=fmtShort;
+$("#tTime").textContent=fmtTime;
+$("#tPlace").textContent=CONFIG.local+(CONFIG.endereco?" — "+CONFIG.endereco:"");
+$("#tDress").textContent=CONFIG.dressCode;
+$("#tCode").textContent="Nº "+String(when.getMonth()+1).padStart(2,"0")+String(when.getDate()).padStart(2,"0")+"-♡";
+$("#ps").textContent=CONFIG.ps;
+
+function tick(){
+  let s=Math.max(0,Math.floor((when-Date.now())/1000));
+  $("#cd").textContent=Math.floor(s/86400);s%=86400;
+  $("#ch").textContent=Math.floor(s/3600);s%=3600;
+  $("#cm").textContent=Math.floor(s/60);
+  $("#cs").textContent=s%60;
+}
+tick();setInterval(tick,1000);
+
+const q=encodeURIComponent(CONFIG.endereco||CONFIG.local);
+if(CONFIG.endereco) $("#map").href="https://www.google.com/maps/search/?api=1&query="+q;
+else { $("#map").removeAttribute("href"); $("#map").textContent="📍 Local: surpresa!"; }
+
+const msg=encodeURIComponent(`Aceito o date do dia ${fmtShort} às ${fmtTime}! 💘`);
+$("#wa").href=CONFIG.whatsapp?`https://wa.me/${CONFIG.whatsapp}?text=${msg}`:`https://wa.me/?text=${msg}`;
+
+$("#ics").onclick=()=>{
+  const pad=n=>String(n).padStart(2,"0");
+  const f=d=>`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  const end=new Date(when.getTime()+CONFIG.duracaoHoras*3600e3);
+  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//convite-date//PT","BEGIN:VEVENT",
+    "UID:"+Date.now()+"@convite-date","DTSTAMP:"+f(new Date()),"DTSTART:"+f(when),"DTEND:"+f(end),
+    "SUMMARY:Date com "+CONFIG.nomeDele+" 💘","LOCATION:"+(CONFIG.endereco||CONFIG.local),
+    "DESCRIPTION:Dress code: "+CONFIG.dressCode,
+    "BEGIN:VALARM","TRIGGER:-PT2H","ACTION:DISPLAY","DESCRIPTION:Hoje tem date!","END:VALARM",
+    "END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([ics],{type:"text/calendar"}));
+  a.download="nosso-date.ics";a.click();
+};
+</script>
+</body>
+</html>
