@@ -102,6 +102,9 @@
   .opt.sel{background:rgba(107,26,46,.45);border-color:var(--gold)}
   .opt.sel .box{background:var(--gold)}
   .opt.sel .box::after{content:"✓"}
+  .opt.radio .box{border-radius:50%}
+  .opt.radio.sel .box::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--bg)}
+  .opt.radio b{margin-top:-1px}
   .opt b{display:block;font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:600;font-style:italic;color:var(--gold-l)}
   .opt span{display:block;font-size:13.5px;color:var(--muted);margin-top:2px;line-height:1.45}
   #toTicket{margin-top:24px}
@@ -179,6 +182,15 @@
   <button class="btn fade-in" id="toAfter" style="margin-top:28px">Continuar</button>
 </section>
 
+<!-- 3b. Onde vamos -->
+<section class="scene scroll" id="s3b">
+  <div class="eyebrow">Primeiro, o lugar</div>
+  <h2 style="margin-top:10px">Onde vamos?</h2>
+  <p class="sub">Escolha um.</p>
+  <div class="menu" id="places"></div>
+  <button class="btn" id="toAfter2" disabled style="margin-top:24px">Continuar</button>
+</section>
+
 <!-- 4. E depois do jantar… -->
 <section class="scene scroll" id="s4">
   <div class="eyebrow">Parte dois</div>
@@ -233,8 +245,7 @@ const CONFIG = {
   assinatura: "— sem pressa, só nós dois",
   data: "2026-11-26T19:30",           // AAAA-MM-DDTHH:MM
   duracaoHoras: 4,
-  local: "Surpresa",
-  endereco: "",                       // opcional, vai para a agenda
+  locais: ["Katsu", "Quartinho", "San"],   // ela escolhe um
   dressCode: "Algo que eu vá querer tirar depois",
   whatsapp: "5521992226666",          // seu número com DDI+DDD, ex: "5575999999999"
   ps: "",                             // opcional, aparece no fim
@@ -307,8 +318,10 @@ function dodge(e){
   }
   no.textContent=noTexts[tries];$("#quip").textContent=quips[tries];
   const r=no.getBoundingClientRect(),pad=16;no.classList.add("flee");
-  no.style.left=(pad+Math.random()*(innerWidth-r.width-pad*2))+"px";
-  no.style.top =(pad+Math.random()*(innerHeight-r.height-pad*2))+"px";
+  const y=$("#yes").getBoundingClientRect();let x,t,n=0;
+  do{ x=pad+Math.random()*(innerWidth-r.width-pad*2); t=pad+Math.random()*(innerHeight-r.height-pad*2); }
+  while(++n<50 && x<y.right+12 && x+r.width>y.left-12 && t<y.bottom+12 && t+r.height>y.top-12);
+  no.style.left=x+"px";no.style.top=t+"px";
 }
 $("#no").onmouseenter=dodge;$("#no").onpointerdown=dodge;
 $("#no").onclick=e=>{ if(tries<noTexts.length) e.preventDefault(); };
@@ -319,7 +332,7 @@ function accept(){
 $("#yes").onclick=accept;
 
 /* 3. raspadinha */
-$("#rDate").textContent=fmtDate;$("#rTime").textContent="às "+fmtTime;$("#rPlace").textContent=CONFIG.local;
+$("#rDate").textContent=fmtDate;$("#rTime").textContent="às "+fmtTime;$("#rPlace").textContent="O lugar, você escolhe";
 function initScratch(){
   const c=$("#scratch"),wrap=$("#scratchWrap"),ctx=c.getContext("2d");
   const dpr=devicePixelRatio||1,w=wrap.offsetWidth,h=wrap.offsetHeight;
@@ -346,7 +359,18 @@ function initScratch(){
   c.addEventListener("pointermove",e=>{if(down)scratch(pos(e))});
   c.addEventListener("pointerup",()=>{down=false;check()});
 }
-$("#toAfter").onclick=()=>go("#s4");
+$("#toAfter").onclick=()=>go("#s3b");
+
+/* 3b. onde vamos */
+let place=null;
+CONFIG.locais.forEach(nome=>{
+  const b=document.createElement("button");b.className="opt radio";
+  b.innerHTML=`<div class="box"></div><div><b></b></div>`;b.querySelector("b").textContent=nome;
+  b.onclick=()=>{ document.querySelectorAll("#places .opt").forEach(o=>o.classList.remove("sel"));
+    b.classList.add("sel");place=nome;$("#toAfter2").disabled=false; };
+  $("#places").appendChild(b);
+});
+$("#toAfter2").onclick=()=>go("#s4");
 
 /* 4. depois do jantar */
 const chosen=new Set();
@@ -364,11 +388,11 @@ $("#toTicket").onclick=()=>{ fillTicket(); go("#s5"); confetti(40); };
 function fillTicket(){
   $("#tHer").textContent=CONFIG.nomeDela;$("#tHim").textContent=CONFIG.nomeDele;
   $("#tDate").textContent=fmtShort;$("#tTime").textContent=fmtTime;
-  $("#tPlace").textContent=CONFIG.local+(CONFIG.endereco?" — "+CONFIG.endereco:"");
+  $("#tPlace").textContent=place;
   $("#tDress").textContent=CONFIG.dressCode;$("#tAfter").textContent=picks().join(" · ");
   $("#tCode").textContent="Nº "+String(when.getMonth()+1).padStart(2,"0")+String(when.getDate()).padStart(2,"0");
   $("#ps").textContent=CONFIG.ps;
-  const msg=encodeURIComponent(`Aceito o date de ${fmtShort}, às ${fmtTime}.\nE depois do jantar: ${picks().join(", ")}.`);
+  const msg=encodeURIComponent(`Aceito o date de ${fmtShort}, às ${fmtTime}, no ${place}.\nE depois do jantar: ${picks().join(", ")}.`);
   $("#wa").href=CONFIG.whatsapp?`https://wa.me/${CONFIG.whatsapp}?text=${msg}`:`https://wa.me/?text=${msg}`;
 }
 function tick(){
@@ -384,7 +408,7 @@ $("#ics").onclick=()=>{
   const end=new Date(when.getTime()+CONFIG.duracaoHoras*3600e3);
   const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//convite-date//PT","BEGIN:VEVENT",
     "UID:"+Date.now()+"@convite-date","DTSTAMP:"+f(new Date()),"DTSTART:"+f(when),"DTEND:"+f(end),
-    "SUMMARY:Date","LOCATION:"+(CONFIG.endereco||CONFIG.local),"DESCRIPTION:Dress code: "+CONFIG.dressCode,
+    "SUMMARY:Date","LOCATION:"+(place||""),"DESCRIPTION:Dress code: "+CONFIG.dressCode,
     "BEGIN:VALARM","TRIGGER:-PT2H","ACTION:DISPLAY","DESCRIPTION:Hoje tem date.","END:VALARM",
     "END:VEVENT","END:VCALENDAR"].join("\r\n");
   const a=document.createElement("a");
