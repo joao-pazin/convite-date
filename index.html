@@ -226,17 +226,17 @@
    ✏️  EDITE AQUI — é só trocar os textos entre aspas
    ========================================================= */
 const CONFIG = {
-  nomeDela: "Meu amor",
+  nomeDela: "Maria Luiza",
   nomeDele: "Seu marido",
   inicialLacre: "♦",                  // ex: a sua inicial, "J"
   pergunta: "Aceitas um date?",
   assinatura: "— sem pressa, só nós dois",
-  data: "2026-12-12T19:30",           // AAAA-MM-DDTHH:MM
+  data: "2026-11-26T19:30",           // AAAA-MM-DDTHH:MM
   duracaoHoras: 4,
   local: "Surpresa",
   endereco: "",                       // opcional, vai para a agenda
   dressCode: "Algo que eu vá querer tirar depois",
-  whatsapp: "",                       // seu número com DDI+DDD, ex: "5575999999999"
+  whatsapp: "5521992226666",          // seu número com DDI+DDD, ex: "5575999999999"
   ps: "",                             // opcional, aparece no fim
   depois: [
     ["Banho a dois",          "Água quente, luz baixa, nenhuma pressa de sair."],
@@ -245,7 +245,7 @@ const CONFIG = {
     ["Strip pôquer",          "Aviso: eu jogo muito mal. Ou finjo."],
     ["Noite fora de casa",    "Um quarto de hotel, celular no silencioso."],
     ["Você manda",            "Por uma noite, cada pedido seu é uma ordem."],
-    ["Surpreenda-me",         "Deixa comigo. Prometo valer a pena."],
+    ["Surpreenda-me",         ""],
   ],
 };
 /* ========================================================= */
@@ -353,7 +353,7 @@ const chosen=new Set();
 CONFIG.depois.forEach(([t,d],i)=>{
   const b=document.createElement("button");b.className="opt";
   b.innerHTML=`<div class="box"></div><div><b></b><span></span></div>`;
-  b.querySelector("b").textContent=t;b.querySelector("span").textContent=d;
+  b.querySelector("b").textContent=t;if(d)b.querySelector("span").textContent=d;else b.querySelector("span").remove();
   b.onclick=()=>{ chosen.has(i)?chosen.delete(i):chosen.add(i); b.classList.toggle("sel"); $("#toTicket").disabled=!chosen.size; };
   $("#menu").appendChild(b);
 });
